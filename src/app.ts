@@ -5,6 +5,7 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import routes from '@/routes';
+import ToDo from '@/routes/toDo';
 
 export const createApp = (): express.Application => {
   const app = express();
@@ -21,6 +22,7 @@ export const createApp = (): express.Application => {
 
   // API Routes
   app.use('/', routes);
+  app.use('/tareas',ToDo);
 
   // Error Middleware
   app.use(errorHandler.genericErrorHandler);
