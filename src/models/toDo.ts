@@ -1,10 +1,11 @@
+import { NextFunction , request, Request , Response } from 'express';
 import connection from './db';
 
 /**
  * Fetch the task of a determinated user
  * @param idUser - Id of the user to fetch the tasks
  */
-const GetTasks = (idUser: number) => {
+const GetTasks = (idUser: number , begin:number = 0,limit:number = 10) => {
     return new Promise((resolve, reject) => {
         connection.query(`
 
@@ -25,9 +26,11 @@ const GetTasks = (idUser: number) => {
         AND logicalErase = 0
 
         ORDER BY createdDate DESC , logicalErase ASC
+
+        LIMIT ?,?
         ;
 
-        `, idUser, (error, result, fileds) => {
+        `, [idUser,begin,limit], (error, result, fileds) => {
             if (error) {
                 console.log(error);
                 reject(error);
@@ -96,9 +99,47 @@ const ToggleDone = (idTask: number, status: 0 | 1 = 1) => {
     });
 }
 
+const GetNoTasks = (req:Request,res:Response,next:NextFunction) => {
+    connection.query(`SELECT COUNT(*) AS noTasks FROM tasks WHERE userId = 1 AND logicalErase = 0`,
+        1,
+        (error, result, fields) => {
+            if (error) {
+                console.log(error);
+                return res.status(200).json({
+                    status:500,
+                    error
+                });
+            }
+
+            req.body.recordsets = result[0]['noTasks']
+
+
+            next();
+        }
+    )
+}
+
+const UpdateTask = (idTask: number, content: string) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`UPDATE tasks SET description = ? WHERE id = ?`,
+            [content, idTask],
+            (error, result, fields) => {
+                if (error) {
+                    console.log(error);
+                    reject(false);
+                }
+
+                resolve(true);
+            }
+        )
+    });
+}
+
 export default {
     GetTasks,
     AddTask,
     DeleteTask,
-    ToggleDone
+    ToggleDone,
+    UpdateTask,
+    GetNoTasks
 }

@@ -11,14 +11,16 @@ import ModelToDo from '../models/toDo';
 const GetTasks = async(req:Request,res:Response)=>{
     try {
         
-        const tasks = await ModelToDo.GetTasks(1);
+        const { rangeBegin:begin,noRegisters:limit , pages } = req.body;
+
+        const tasks = await ModelToDo.GetTasks(1,begin,limit);
 
         return res.status(200).json({
             status:200,
             data:{
                 tasks,
-                pages:1,
-                actualPage:1
+                pages,
+                actualPage:+(req.query.pagina||1)
             }
         });
 
@@ -86,8 +88,6 @@ const UpdateCheckToDo = async(req:Request,res:Response)=>{
         
         const { idTask , status } = req.body;
 
-        console.log(req.body);
-
         await ModelToDo.ToggleDone(idTask,status);
 
         return res.status(200).json({
@@ -106,9 +106,35 @@ const UpdateCheckToDo = async(req:Request,res:Response)=>{
     }
 }
 
+const UpdateTask = async(req:Request,res:Response)=>{
+    try {
+
+        const { idTask , content  } = req.body;
+
+        console.log(req.body);
+
+        await ModelToDo.UpdateTask(idTask,content);
+
+        return res.status(200).json({
+            status:200,
+            message:'Tare actualizada'
+        });
+
+    } catch (error) {
+        console.log(error);
+
+        return res.status(200).json({
+            status:500,
+            error,
+            message:'Error'
+        });
+    }
+}
+
 export default {
     GetTasks,
     AddTask,
     UpdateCheckToDo,
-    DeleteTask
+    DeleteTask,
+    UpdateTask
 }
